@@ -16,14 +16,17 @@ I wanted to try avoid updating the tables but want records created in one postgr
 # detecting changes
 
 When the records have identical counts, we need to synchronize changed tables and rows.
-
+ * But it might be a column modification
  * We can sort the column names, then issue a query to fetch every record, sorted by that sorted column list.
  * We want to transform one side to the other side without transferring too much data.
- * We hash every row and store the data on the file system.
- * The other node synchronizes the hash list.
- * The other node hashes all its own records and checks if they exist in the hash list.
- * If a hash doesn't exist, it inserts the record into the database.
- * But it might be a column modification.
+ * We walk through the data and hash the data of the record combined with the previous hash of the previous record. 
+ * To check for modifications, we check hash 0 and hash N (size of table), if the hashes don't match. If N (size of table) has equal hash to us, then the data is all the same on both servers.
+ * We binary search the index for the first non-conflicting data record.
+ * We know the two records that have changed between servers. Which record wins?
+ * If we have a timestamp column, we use that.
+ * We change the record that doesn't match the hash to look like the other.
+ * This winner calculation needs to produce the same result on both servers when they both do this operation.
+ * We could introduce a version column, and the higher version wins.
 
 
 Rolling hash.
