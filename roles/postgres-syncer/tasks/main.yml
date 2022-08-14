@@ -1,0 +1,42 @@
+- name: create syncer directory
+  file:
+    path: /etc/postgres-sync
+    state: directory
+
+- name: Create postgresl syncer configuration file
+  copy:
+    content: "{{ syncer_config | to_yaml }}"
+    dest: /etc/postgres-sync/sync.yml
+
+- name: install syncer
+  template:
+    src: syncer.py
+    dest: /etc/postgres-sync/syncer.py
+
+- name: install python3
+  package:
+    name: python3
+    state: present
+    
+- name: install python3-psycopg2
+  package:
+    name: python3-psycopg2
+    state: present
+
+- name: install python3-yaml
+  package:
+    name: python3-yaml
+    state: present
+
+- name: create log directory
+  file:
+    path: /var/log/postgres-sync
+    state: directory
+
+- name: create cron job for running postgres sync
+  ansible.builtin.cron:
+    name: "synchronize_postgres"
+    minute: "*"
+    hour: "*"
+    job: "python3 /etc/postgres-sync/syncer.py > /var/log/postgres-sync/postgres-sync.log"
+ 

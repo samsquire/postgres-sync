@@ -1,0 +1,7 @@
+- hosts: all
+  become: true
+  roles:
+  - postgres
+  - postgres-syncer
+  vars_files:
+  - "group_vars/local/ansible_vault.yml"

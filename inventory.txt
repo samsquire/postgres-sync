@@ -1,0 +1,4 @@
+[nodes]
+storage01
+storage02
+storage03

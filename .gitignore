@@ -1,0 +1,4 @@
+ansible_vault.unencrypted.yml
+.vaultpassword
+*.vdi
+.vagrant

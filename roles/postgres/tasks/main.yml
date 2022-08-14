@@ -1,0 +1,75 @@
+- name: install postgres
+  package:
+    name: postgresql
+    state: present
+
+- name: install postgresql configuration file
+  template:
+    src: postgresql.conf
+    dest: /etc/postgresql/14/main/postgresql.conf
+  notify:
+  - restart postgresql
+
+- name: install postgresql configuration file
+  template:
+    src: pg_hba.conf
+    dest: /etc/postgresql/14/main/pg_hba.conf
+  notify:
+  - restart postgresql
+
+- name: create postgresql-sync-app directory
+  file:
+    path: /etc/postgresql-sync-app
+    state: directory
+    owner: postgres
+    group: postgres
+    recurse: true
+
+
+- name: change data directory owner
+  file:
+    path: /srv/data
+    owner: postgres
+    group: postgres
+    recurse: true
+
+- name: create db subdirectory
+  file:
+    path: /srv/data/db
+    state: directory
+    owner: postgres
+    group: postgres
+
+- name: initdb
+  shell: "sudo -u postgres /usr/lib/postgresql/14/bin/initdb --username=postgres --pgdata=/srv/data/db && sudo -u postgres touch /etc/postgresql-sync-app/initdb_done"
+  args:
+    creates: /etc/postgresql-sync-app/initdb_done
+  
+
+- name: install postgresql-contrib
+  package:
+    name:  postgresql-contrib
+    state: present
+ 
+- name: enable postgresql
+  ansible.builtin.service:
+    name: postgresql@14-main 
+    enabled: yes
+    state: stopped
+
+- name: enable postgresql
+  ansible.builtin.service:
+    name: postgresql@14-main 
+    enabled: yes
+    state: started
+
+
+- name: install schema
+  template:
+    src: schema.sql
+    dest: /etc/postgresql-sync-app/schema.sql
+    owner: postgres
+    group: postgres
+ 
+- name: create database
+  ansible.builtin.shell: sudo -u postgres psql < /etc/postgresql-sync-app/schema.sql
